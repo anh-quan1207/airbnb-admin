@@ -12,7 +12,7 @@ const routes = [
   },
   {
     path: "/dashboard",
-    name: "dashboard",
+    name: "Dashboard",
     component: DashboardView,
   },
   {
