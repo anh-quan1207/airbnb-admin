@@ -122,10 +122,16 @@ function initializeQuiz() {
   displayQuestion(0);
   
   // Hiển thị thông tin về bài kiểm tra
-  document.getElementById('total-questions').textContent = quizData.questions.length;
-  document.getElementById('current-question').textContent = 1;
+  const totalQuestionsElement = document.getElementById('total-questions');
+  if (totalQuestionsElement) {
+    totalQuestionsElement.textContent = quizData.questions.length;
+  }
   
-  // Kiểm tra sự tồn tại của phần tử pass-percent trước khi gán giá trị
+  const currentQuestionElement = document.getElementById('current-question');
+  if (currentQuestionElement) {
+    currentQuestionElement.textContent = 1;
+  }
+  
   const passPercentElement = document.getElementById('pass-percent');
   if (passPercentElement) {
     passPercentElement.textContent = quizData.pass_percent;
@@ -147,6 +153,8 @@ function initializeQuiz() {
 function createQuestionIndex() {
   // Tạo container cho khung chỉ mục
   const quizContainer = document.getElementById('quiz-container');
+  if (!quizContainer) return;
+  
   const indexContainer = document.createElement('div');
   indexContainer.className = 'question-index-container';
   indexContainer.id = 'question-index';
@@ -177,7 +185,14 @@ function createQuestionIndex() {
   }
   
   indexContainer.appendChild(indexGrid);
-  quizContainer.insertBefore(indexContainer, document.getElementById('submit-button'));
+  
+  // Kiểm tra sự tồn tại của nút submit trước khi chèn
+  const submitButton = document.getElementById('submit-button');
+  if (submitButton) {
+    quizContainer.insertBefore(indexContainer, submitButton);
+  } else {
+    quizContainer.appendChild(indexContainer);
+  }
 }
 
 // Hiển thị câu hỏi
@@ -186,116 +201,121 @@ function displayQuestion(index) {
   const questionContainer = document.getElementById('question-container');
   
   // Cập nhật thông tin câu hỏi hiện tại
-  document.getElementById('current-question').textContent = index + 1;
+  const currentQuestionElement = document.getElementById('current-question');
+  if (currentQuestionElement) {
+    currentQuestionElement.textContent = index + 1;
+  }
   
   // Xóa nội dung cũ
-  questionContainer.innerHTML = '';
-  
-  // Tạo phần tử câu hỏi
-  const questionElement = document.createElement('div');
-  questionElement.className = 'question';
-  
-  // Tiêu đề câu hỏi
-  const questionNumber = document.createElement('div');
-  questionNumber.className = 'question-number';
-  questionNumber.textContent = `Câu hỏi ${index + 1}:`;
-  questionElement.appendChild(questionNumber);
-  
-  // Nội dung câu hỏi
-  const questionText = document.createElement('div');
-  questionText.className = 'question-text';
-  questionText.innerHTML = question.prompt.question;
-  questionElement.appendChild(questionText);
-  
-  // Danh sách câu trả lời
-  const answersList = document.createElement('ul');
-  answersList.className = 'answers';
-  
-  // Kiểm tra loại câu hỏi
-  const isMultiSelect = question.assessment_type === 'multi-select';
-  
-  // Tạo các phần tử câu trả lời
-  question.prompt.answers.forEach((answer, answerIndex) => {
-    const answerItem = document.createElement('li');
-    answerItem.className = 'answer-item';
+  if (questionContainer) {
+    questionContainer.innerHTML = '';
     
-    // Nếu đã chọn câu trả lời này trước đó
-    if (quizState.answers[index] !== null) {
-      const userAnswers = quizState.answers[index];
-      if (isMultiSelect) {
-        if (userAnswers.includes(answerIndex)) {
-          answerItem.classList.add('selected');
-        }
-      } else {
-        if (userAnswers === answerIndex) {
-          answerItem.classList.add('selected');
-        }
-      }
-    }
+    // Tạo phần tử câu hỏi
+    const questionElement = document.createElement('div');
+    questionElement.className = 'question';
     
-    // Tạo label và input cho câu trả lời
-    const label = document.createElement('label');
+    // Tiêu đề câu hỏi
+    const questionNumber = document.createElement('div');
+    questionNumber.className = 'question-number';
+    questionNumber.textContent = `Câu hỏi ${index + 1}:`;
+    questionElement.appendChild(questionNumber);
     
-    const input = document.createElement('input');
-    input.type = isMultiSelect ? 'checkbox' : 'radio';
-    input.name = `question-${index}`;
-    input.value = answerIndex;
+    // Nội dung câu hỏi
+    const questionText = document.createElement('div');
+    questionText.className = 'question-text';
+    questionText.innerHTML = question.prompt.question;
+    questionElement.appendChild(questionText);
     
-    if (quizState.answers[index] !== null) {
-      if (isMultiSelect) {
-        input.checked = quizState.answers[index].includes(answerIndex);
-      } else {
-        input.checked = quizState.answers[index] === answerIndex;
-      }
-    }
+    // Danh sách câu trả lời
+    const answersList = document.createElement('ul');
+    answersList.className = 'answers';
     
-    // Thêm sự kiện click cho câu trả lời
-    answerItem.addEventListener('click', () => {
-      const answerItems = answersList.querySelectorAll('li.answer-item');
+    // Kiểm tra loại câu hỏi
+    const isMultiSelect = question.assessment_type === 'multi-select';
+    
+    // Tạo các phần tử câu trả lời
+    question.prompt.answers.forEach((answer, answerIndex) => {
+      const answerItem = document.createElement('li');
+      answerItem.className = 'answer-item';
       
-      if (isMultiSelect) {
-        // Chọn/bỏ chọn câu trả lời
-        answerItem.classList.toggle('selected');
-        input.checked = !input.checked;
-        
-        // Cập nhật mảng câu trả lời
-        const selectedAnswers = [];
-        answerItems.forEach((item, idx) => {
-          if (item.classList.contains('selected')) {
-            selectedAnswers.push(idx);
+      // Nếu đã chọn câu trả lời này trước đó
+      if (quizState.answers[index] !== null) {
+        const userAnswers = quizState.answers[index];
+        if (isMultiSelect) {
+          if (userAnswers.includes(answerIndex)) {
+            answerItem.classList.add('selected');
           }
-        });
-        quizState.answers[index] = selectedAnswers.length > 0 ? selectedAnswers : null;
-      } else {
-        // Bỏ chọn tất cả các câu trả lời khác
-        answerItems.forEach(item => {
-          item.classList.remove('selected');
-          item.querySelector('input').checked = false;
-        });
-        
-        // Chọn câu trả lời hiện tại
-        answerItem.classList.add('selected');
-        input.checked = true;
-        quizState.answers[index] = answerIndex;
+        } else {
+          if (userAnswers === answerIndex) {
+            answerItem.classList.add('selected');
+          }
+        }
       }
       
-      // Cập nhật thanh tiến trình
-      updateProgress();
+      // Tạo label và input cho câu trả lời
+      const label = document.createElement('label');
+      
+      const input = document.createElement('input');
+      input.type = isMultiSelect ? 'checkbox' : 'radio';
+      input.name = `question-${index}`;
+      input.value = answerIndex;
+      
+      if (quizState.answers[index] !== null) {
+        if (isMultiSelect) {
+          input.checked = quizState.answers[index].includes(answerIndex);
+        } else {
+          input.checked = quizState.answers[index] === answerIndex;
+        }
+      }
+      
+      // Thêm sự kiện click cho câu trả lời
+      answerItem.addEventListener('click', () => {
+        const answerItems = answersList.querySelectorAll('li.answer-item');
+        
+        if (isMultiSelect) {
+          // Chọn/bỏ chọn câu trả lời
+          answerItem.classList.toggle('selected');
+          input.checked = !input.checked;
+          
+          // Cập nhật mảng câu trả lời
+          const selectedAnswers = [];
+          answerItems.forEach((item, idx) => {
+            if (item.classList.contains('selected')) {
+              selectedAnswers.push(idx);
+            }
+          });
+          quizState.answers[index] = selectedAnswers.length > 0 ? selectedAnswers : null;
+        } else {
+          // Bỏ chọn tất cả các câu trả lời khác
+          answerItems.forEach(item => {
+            item.classList.remove('selected');
+            item.querySelector('input').checked = false;
+          });
+          
+          // Chọn câu trả lời hiện tại
+          answerItem.classList.add('selected');
+          input.checked = true;
+          quizState.answers[index] = answerIndex;
+        }
+        
+        // Cập nhật thanh tiến trình
+        updateProgress();
+      });
+      
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' '));
+      
+      const answerText = document.createElement('span');
+      answerText.innerHTML = answer;
+      label.appendChild(answerText);
+      
+      answerItem.appendChild(label);
+      answersList.appendChild(answerItem);
     });
     
-    label.appendChild(input);
-    label.appendChild(document.createTextNode(' '));
-    
-    const answerText = document.createElement('span');
-    answerText.innerHTML = answer;
-    label.appendChild(answerText);
-    
-    answerItem.appendChild(label);
-    answersList.appendChild(answerItem);
-  });
-  
-  questionElement.appendChild(answersList);
-  questionContainer.appendChild(questionElement);
+    questionElement.appendChild(answersList);
+    questionContainer.appendChild(questionElement);
+  }
   
   // Cập nhật tiến trình
   updateProgress();
@@ -309,8 +329,11 @@ function displayQuestion(index) {
 
 // Cập nhật thanh tiến trình
 function updateProgress() {
-  const answeredCount = quizState.answers.filter(answer => answer !== null).length;
-  document.getElementById('completed-questions').textContent = answeredCount;
+  const answeredQuestions = quizState.answers.filter(answer => answer !== null).length;
+  const completedQuestionsElement = document.getElementById('completed-questions');
+  if (completedQuestionsElement) {
+    completedQuestionsElement.textContent = answeredQuestions;
+  }
   
   // Cập nhật khung chỉ mục câu hỏi
   updateQuestionIndex();
@@ -318,67 +341,71 @@ function updateProgress() {
 
 // Cập nhật khung chỉ mục câu hỏi
 function updateQuestionIndex(currentIndex = quizState.currentQuestion) {
-  const indexItems = document.querySelectorAll('.index-item');
+  const indexContainer = document.getElementById('question-index');
+  if (!indexContainer) return;
   
-  // Xóa trạng thái hiện tại
+  // Xóa class active khỏi tất cả các item
+  const indexItems = indexContainer.querySelectorAll('.index-item');
   indexItems.forEach(item => {
-    item.classList.remove('current');
-    item.classList.remove('answered');
-  });
-  
-  // Cập nhật trạng thái các câu đã trả lời
-  quizState.answers.forEach((answer, index) => {
-    if (answer !== null) {
-      indexItems[index].classList.add('answered');
+    item.classList.remove('active');
+    
+    // Đánh dấu câu hỏi đã trả lời
+    const index = parseInt(item.dataset.index);
+    if (quizState.answers[index] !== null) {
+      item.classList.add('answered');
+    } else {
+      item.classList.remove('answered');
     }
   });
   
-  // Đánh dấu câu hiện tại
-  indexItems[currentIndex].classList.add('current');
+  // Thêm class active cho item hiện tại
+  const currentItem = indexContainer.querySelector(`.index-item[data-index="${currentIndex}"]`);
+  if (currentItem) {
+    currentItem.classList.add('active');
+  }
 }
 
-// Thiết lập nút điều hướng
+// Xử lý nút điều hướng
 function setupNavigation() {
   const prevButton = document.getElementById('prev-button');
   const nextButton = document.getElementById('next-button');
   
-  prevButton.addEventListener('click', () => {
-    if (quizState.currentQuestion > 0) {
-      displayQuestion(quizState.currentQuestion - 1);
-    }
-  });
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      if (quizState.currentQuestion > 0) {
+        displayQuestion(quizState.currentQuestion - 1);
+      }
+    });
+  }
   
-  nextButton.addEventListener('click', () => {
-    if (quizState.currentQuestion < quizData.questions.length - 1) {
-      displayQuestion(quizState.currentQuestion + 1);
-    }
-  });
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      if (quizState.currentQuestion < quizData.questions.length - 1) {
+        displayQuestion(quizState.currentQuestion + 1);
+      }
+    });
+  }
 }
 
-// Thiết lập nút nộp bài
+// Xử lý nút nộp bài
 function setupSubmitButton() {
   const submitButton = document.getElementById('submit-button');
   
-  submitButton.addEventListener('click', () => {
-    // Kiểm tra xem đã trả lời tất cả câu hỏi chưa
-    const unansweredQuestions = quizState.answers.filter(answer => answer === null).length;
-    
-    if (unansweredQuestions > 0) {
-      const confirmed = confirm(`Bạn còn ${unansweredQuestions} câu hỏi chưa trả lời. Bạn có muốn nộp bài không?`);
-      if (!confirmed) {
-        return;
+  if (submitButton) {
+    submitButton.addEventListener('click', () => {
+      // Hiện hộp thoại xác nhận
+      const unansweredCount = quizState.answers.filter(answer => answer === null).length;
+      
+      let confirmMessage = 'Bạn có chắc chắn muốn nộp bài?';
+      if (unansweredCount > 0) {
+        confirmMessage = `Bạn còn ${unansweredCount} câu hỏi chưa trả lời. Bạn có chắc chắn muốn nộp bài?`;
       }
-    } else {
-      // Xác nhận nộp bài khi đã trả lời hết
-      const confirmed = confirm('Bạn có chắc chắn muốn nộp bài?');
-      if (!confirmed) {
-        return;
+      
+      if (confirm(confirmMessage)) {
+        submitQuiz();
       }
-    }
-    
-    // Nộp bài
-    submitQuiz();
-  });
+    });
+  }
 }
 
 // Nộp bài kiểm tra
@@ -620,7 +647,11 @@ function startTimer() {
     
     const minutesDisplay = quizState.timer.minutes.toString().padStart(2, '0');
     const secondsDisplay = quizState.timer.seconds.toString().padStart(2, '0');
-    document.getElementById('timer').textContent = `${minutesDisplay}:${secondsDisplay}`;
+    
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+      timerElement.textContent = `${minutesDisplay}:${secondsDisplay}`;
+    }
   }, 1000);
 }
 
