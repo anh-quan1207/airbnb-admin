@@ -124,7 +124,12 @@ function initializeQuiz() {
   // Hiển thị thông tin về bài kiểm tra
   document.getElementById('total-questions').textContent = quizData.questions.length;
   document.getElementById('current-question').textContent = 1;
-  document.getElementById('pass-percent').textContent = quizData.pass_percent;
+  
+  // Kiểm tra sự tồn tại của phần tử pass-percent trước khi gán giá trị
+  const passPercentElement = document.getElementById('pass-percent');
+  if (passPercentElement) {
+    passPercentElement.textContent = quizData.pass_percent;
+  }
   
   // Khởi tạo timer
   startTimer();
